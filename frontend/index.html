@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocTranslate - Document Translation</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col font-sans">
+
+    <!-- Header / Navigation -->
+    <header class="bg-white border-b border-gray-200 py-4 shadow-sm">
+        <div class="max-w-5xl mx-auto px-4 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="bg-blue-600 text-white p-2.5 rounded-lg shadow-md flex items-center justify-center">
+                    <i class="fa-solid fa-language text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-gray-900 tracking-tight">DocTranslate</h1>
+                    <p class="text-xs text-gray-500 font-medium">College Mini-Project</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2 text-xs font-semibold bg-blue-50 text-blue-700 px-3 py-1.5 rounded-full">
+                <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+                <span>IndicTrans2-En-Indic</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow max-w-3xl w-full mx-auto px-4 py-12">
+        
+        <!-- Welcome Banner -->
+        <div class="text-center mb-10">
+            <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+                Translate your documents
+            </h2>
+            <p class="mt-3 text-lg text-gray-500">
+                Translate English DOCX files to Marathi while preserving formatting.
+            </p>
+        </div>
+
+        <!-- Translation Card -->
+        <div class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden p-6 md:p-8 space-y-6">
+            
+            <!-- Language Selection Bar -->
+            <div class="grid grid-cols-1 md:grid-cols-3 items-center gap-4 bg-gray-50 p-4 rounded-xl border border-gray-150">
+                <!-- Source -->
+                <div class="flex flex-col">
+                    <label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Source Language</label>
+                    <div class="relative">
+                        <select disabled class="w-full bg-white border border-gray-200 rounded-lg py-2 px-3 text-sm font-semibold text-gray-700 appearance-none cursor-not-allowed">
+                            <option>English</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
+                            <i class="fa-solid fa-lock text-xs"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Arrow Icon -->
+                <div class="flex justify-center text-blue-500">
+                    <i class="fa-solid fa-circle-arrow-right text-2xl hidden md:block"></i>
+                    <i class="fa-solid fa-circle-arrow-down text-2xl md:hidden"></i>
+                </div>
+
+                <!-- Target -->
+                <div class="flex flex-col">
+                    <label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Target Language</label>
+                    <div class="relative">
+                        <select disabled class="w-full bg-white border border-gray-200 rounded-lg py-2 px-3 text-sm font-semibold text-gray-700 appearance-none cursor-not-allowed">
+                            <option>Marathi (मराठी)</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
+                            <i class="fa-solid fa-lock text-xs"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upload Area -->
+            <div id="dropzone" class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-blue-500 transition-colors cursor-pointer group relative">
+                <input type="file" id="fileInput" accept=".docx" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                <div class="space-y-3">
+                    <div class="text-blue-500 text-4xl group-hover:scale-110 transition-transform duration-200">
+                        <i class="fa-regular fa-file-word"></i>
+                    </div>
+                    <div class="text-sm font-medium text-gray-700">
+                        <span class="text-blue-600 hover:text-blue-700 underline">Upload a file</span> or drag and drop
+                    </div>
+                    <div class="text-xs text-gray-400">
+                        Only Microsoft Word (.docx) documents are supported
+                    </div>
+                </div>
+            </div>
+
+            <!-- File Details Card (Hidden by default) -->
+            <div id="fileDetails" class="hidden flex items-center justify-between bg-blue-50/50 border border-blue-100 rounded-xl p-4">
+                <div class="flex items-center space-x-3">
+                    <div class="text-blue-600 text-2xl">
+                        <i class="fa-solid fa-file-contract"></i>
+                    </div>
+                    <div class="truncate max-w-xs sm:max-w-md">
+                        <p id="fileName" class="text-sm font-semibold text-gray-800 truncate">document.docx</p>
+                        <p id="fileSize" class="text-xs text-gray-500">0 KB</p>
+                    </div>
+                </div>
+                <button id="removeFileBtn" class="text-gray-400 hover:text-red-500 p-1.5 rounded-full hover:bg-gray-100 transition-colors" title="Remove file">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Action / Button State -->
+            <div class="flex flex-col space-y-4">
+                <!-- Translate Button -->
+                <button id="translateBtn" disabled class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-6 rounded-xl shadow-md disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center space-x-2">
+                    <span>Translate Document</span>
+                </button>
+
+                <!-- Processing / Loading State (Hidden by default) -->
+                <div id="loadingState" class="hidden flex flex-col items-center justify-center p-4 bg-gray-55 border border-gray-100 rounded-xl space-y-3">
+                    <div class="flex items-center space-x-3">
+                        <!-- Loading Spinner -->
+                        <svg class="animate-spin h-6 w-6 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span id="loadingMessage" class="text-sm font-semibold text-gray-700">Translating document using IndicTrans2...</span>
+                    </div>
+                    <p class="text-xs text-gray-400 text-center">
+                        This runs locally on your GPU/CPU. Do not close this tab.
+                    </p>
+                </div>
+
+                <!-- Success State (Hidden by default) -->
+                <div id="successState" class="hidden border border-green-200 bg-green-50 rounded-xl p-5 text-center space-y-4 shadow-sm">
+                    <div class="flex flex-col items-center space-y-2">
+                        <div class="bg-green-100 text-green-600 w-12 h-12 rounded-full flex items-center justify-center text-xl shadow-inner">
+                            <i class="fa-solid fa-check"></i>
+                        </div>
+                        <h4 class="text-base font-bold text-green-800">Translation Successful!</h4>
+                        <p class="text-xs text-green-700">Your English document was successfully translated into Marathi.</p>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <button id="downloadBtn" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-colors flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-download"></i>
+                            <span>Download Marathi Document</span>
+                        </button>
+                        <button id="resetBtn" class="flex-1 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 font-semibold py-3 px-6 rounded-xl shadow-sm transition-colors flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-rotate-left"></i>
+                            <span>Translate Another</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Error State (Hidden by default) -->
+                <div id="errorState" class="hidden border border-red-200 bg-red-50 rounded-xl p-4 flex items-start space-x-3">
+                    <div class="text-red-500 text-lg mt-0.5">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                    </div>
+                    <div class="flex-grow">
+                        <h4 class="text-sm font-bold text-red-800">Translation Error</h4>
+                        <p id="errorMessage" class="text-xs text-red-700 mt-1">An error occurred while uploading or translating your document.</p>
+                    </div>
+                    <button id="closeErrorBtn" class="text-red-400 hover:text-red-700">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 py-6 mt-auto">
+        <div class="max-w-5xl mx-auto px-4 text-center text-xs text-gray-400 space-y-2">
+            <p>&copy; 2026 DocTranslate Project. Built for College Mini-Project.</p>
+            <p>Powered by local IndicTrans2 model (<span class="font-mono">ai4bharat/indictrans2-en-indic-dist-200M</span>).</p>
+        </div>
+    </footer>
+
+    <!-- Frontend Script -->
+    <script src="app.js"></script>
+</body>
+</html>

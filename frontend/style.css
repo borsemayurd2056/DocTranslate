@@ -1,0 +1,17 @@
+/* Custom transitions and visual styling */
+#dropzone {
+    transition: all 0.2s ease-in-out;
+}
+
+#dropzone:hover {
+    background-color: rgba(239, 246, 255, 0.4);
+}
+
+/* Custom button states */
+button {
+    transition: all 0.15s ease-in-out;
+}
+
+button:active {
+    transform: scale(0.98);
+}

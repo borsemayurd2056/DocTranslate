@@ -1,0 +1,20 @@
+# Python virtual environments and caches
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Project uploads and outputs temp files
+backend/uploads/*
+backend/outputs/*
+!backend/uploads/.gitkeep
+!backend/outputs/.gitkeep
+
+# IDE configuration folders
+.vscode/
+.idea/
+
+# Local test outputs
+tests/sample.docx
+tests/sample_translated.docx
