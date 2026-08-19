@@ -1,8 +1,17 @@
 [project]
 name = "doctranslate"
 version = "0.1.0"
-description = "English to Marathi document translation using IndicTrans2"
 requires-python = ">=3.11,<3.13"
+dependencies = [
+    "Flask>=3.0.0",
+    "flask-cors>=4.0.0",
+    "python-docx>=1.1.0",
+    "torch>=2.0.0",
+    "transformers>=4.30.0",
+    "sentencepiece>=0.2.0",
+    "sacremoses",
+    "indictranstoolkit>=1.1.1"
+]
 
 [tool.vercel]
 entrypoint = "backend.app:app"
