@@ -1,2 +1,8 @@
+[project]
+name = "doctranslate"
+version = "0.1.0"
+description = "English to Marathi document translation using IndicTrans2"
+requires-python = ">=3.11,<3.13"
+
 [tool.vercel]
 entrypoint = "backend.app:app"
