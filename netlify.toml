@@ -1,0 +1,4 @@
+[build]
+  # The UI is plain static files; no build step is needed.
+  publish = "frontend"
+  command = ""
