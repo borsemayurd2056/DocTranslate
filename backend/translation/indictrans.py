@@ -14,9 +14,10 @@ def get_device(force_cpu=False):
     global device
     if force_cpu or os.environ.get("FORCE_CPU", "").lower() in ("1", "true", "yes"):
         return "cpu"
-    if device is None:
-        device = "cuda" if torch.cuda.is_available() else "cpu"
+    # Dynamically check cuda availability so ZeroGPU activation is immediately detected
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     return device
+
 
 def load_model(force_cpu=False):
     """Loads tokenizer and model once into memory."""
