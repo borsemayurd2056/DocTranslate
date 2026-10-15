@@ -31,6 +31,14 @@ try:
     import transformers.tokenization_utils
     if not hasattr(transformers.tokenization_utils, "PreTrainedTokenizerBase"):
         transformers.tokenization_utils.PreTrainedTokenizerBase = transformers.tokenization_utils_base.PreTrainedTokenizerBase
+    
+    # Patch PreTrainedTokenizerBase.__setattr__ to prevent AttributeError: IndicTransTokenizer has no attribute _special_tokens_map
+    _orig_tub_setattr = transformers.tokenization_utils_base.PreTrainedTokenizerBase.__setattr__
+    def _safe_tub_setattr(self, name, value):
+        if not hasattr(self, '_special_tokens_map'):
+            self.__dict__['_special_tokens_map'] = {}
+        return _orig_tub_setattr(self, name, value)
+    transformers.tokenization_utils_base.PreTrainedTokenizerBase.__setattr__ = _safe_tub_setattr
 except Exception:
     pass
 
