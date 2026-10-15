@@ -57,9 +57,12 @@ def load_model(force_cpu=False):
     if cache_dir:
         os.makedirs(cache_dir, exist_ok=True)
     
+    hf_token = os.environ.get("HF_TOKEN") or None
+
     tokenizer = AutoTokenizer.from_pretrained(
         model_name,
         trust_remote_code=True,
+        token=hf_token,
         cache_dir=cache_dir
     )
     
@@ -67,6 +70,7 @@ def load_model(force_cpu=False):
         model_name,
         trust_remote_code=True,
         dtype=target_dtype,
+        token=hf_token,
         cache_dir=cache_dir
     ).to(target_device)
     
