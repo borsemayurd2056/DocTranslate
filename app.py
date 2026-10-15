@@ -13,7 +13,17 @@ if sys.platform.startswith('win'):
     except AttributeError:
         pass
 
-# Compatibility patch for IndicTransToolkit with modern transformers versions
+# Compatibility patch for IndicTransToolkit and IndicTrans2 with modern transformers versions
+import types
+if 'transformers.onnx' not in sys.modules:
+    try:
+        import transformers.onnx
+    except (ImportError, ModuleNotFoundError):
+        onnx_mock = types.ModuleType('transformers.onnx')
+        onnx_mock.OnnxConfig = type('OnnxConfig', (object,), {})
+        onnx_mock.OnnxSeq2SeqConfigWithPast = type('OnnxSeq2SeqConfigWithPast', (object,), {})
+        sys.modules['transformers.onnx'] = onnx_mock
+
 try:
     import transformers
     import transformers.tokenization_utils_base
