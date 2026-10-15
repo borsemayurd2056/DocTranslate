@@ -1,7 +1,18 @@
 import torch
 import sys
 import os
+import transformers
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
+
+# Compatibility patch for IndicTransToolkit with modern transformers versions
+try:
+    import transformers.tokenization_utils_base
+    import transformers.tokenization_utils
+    if not hasattr(transformers.tokenization_utils, "PreTrainedTokenizerBase"):
+        transformers.tokenization_utils.PreTrainedTokenizerBase = transformers.tokenization_utils_base.PreTrainedTokenizerBase
+except Exception:
+    pass
+
 from IndicTransToolkit.processor import IndicProcessor
 
 # Global translation components

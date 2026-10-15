@@ -13,6 +13,16 @@ if sys.platform.startswith('win'):
     except AttributeError:
         pass
 
+# Compatibility patch for IndicTransToolkit with modern transformers versions
+try:
+    import transformers
+    import transformers.tokenization_utils_base
+    import transformers.tokenization_utils
+    if not hasattr(transformers.tokenization_utils, "PreTrainedTokenizerBase"):
+        transformers.tokenization_utils.PreTrainedTokenizerBase = transformers.tokenization_utils_base.PreTrainedTokenizerBase
+except Exception:
+    pass
+
 import gradio as gr
 from backend.translation.indictrans import load_model, translate_text
 from backend.document.docx_processor import translate_docx
