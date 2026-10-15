@@ -11,9 +11,20 @@ if 'transformers.onnx' not in sys.modules:
         import transformers.onnx
     except (ImportError, ModuleNotFoundError):
         onnx_mock = types.ModuleType('transformers.onnx')
+        onnx_mock.__path__ = []
         onnx_mock.OnnxConfig = type('OnnxConfig', (object,), {})
         onnx_mock.OnnxSeq2SeqConfigWithPast = type('OnnxSeq2SeqConfigWithPast', (object,), {})
         sys.modules['transformers.onnx'] = onnx_mock
+
+if 'transformers.onnx.utils' not in sys.modules:
+    try:
+        import transformers.onnx.utils
+    except (ImportError, ModuleNotFoundError):
+        onnx_utils_mock = types.ModuleType('transformers.onnx.utils')
+        onnx_utils_mock.compute_effective_axis_dimension = lambda *a, **kw: None
+        sys.modules['transformers.onnx.utils'] = onnx_utils_mock
+        if 'transformers.onnx' in sys.modules:
+            sys.modules['transformers.onnx'].utils = onnx_utils_mock
 
 try:
     import transformers.tokenization_utils_base
