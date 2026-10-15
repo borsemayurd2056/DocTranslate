@@ -49,6 +49,26 @@ try:
             self.__dict__['_special_tokens_map'] = {}
         return _orig_tub_setattr(self, name, value)
     transformers.tokenization_utils_base.PreTrainedTokenizerBase.__setattr__ = _safe_tub_setattr
+
+    # Patch PreTrainedModel to prevent TypeError: IndicTransForConditionalGeneration.tie_weights() got an unexpected keyword argument 'recompute_mapping'
+    import transformers.modeling_utils
+    _orig_init_weights = transformers.modeling_utils.PreTrainedModel.init_weights
+    def _safe_init_weights(self, *args, **kwargs):
+        cls = self.__class__
+        if hasattr(cls, 'tie_weights'):
+            orig_tw = cls.tie_weights
+            if not getattr(orig_tw, '_is_patched', False):
+                def make_safe_tw(tw):
+                    def safe_tw(self, *a, **kw):
+                        try:
+                            return tw(self)
+                        except TypeError:
+                            return tw(self, *a, **kw)
+                    safe_tw._is_patched = True
+                    return safe_tw
+                cls.tie_weights = make_safe_tw(orig_tw)
+        return _orig_init_weights(self, *args, **kwargs)
+    transformers.modeling_utils.PreTrainedModel.init_weights = _safe_init_weights
 except Exception:
     pass
 
