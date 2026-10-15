@@ -1,3 +1,13 @@
+---
+title: DocTranslate
+emoji: 📄
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # DocTranslate 🌐📄
 
 **DocTranslate** is a deployable web application designed to translate English `.docx` documents to Marathi (`मराठी`) while preserving layout formatting, font styles, tables, and document structures. It runs locally or on a production server using the high-accuracy **IndicTrans2** neural machine translation model.

@@ -1,9 +1,17 @@
 # Python virtual environments and caches
 .venv/
+venv/
+env/
+ENV/
 __pycache__/
 *.pyc
 *.pyo
 .pytest_cache/
+
+# Node dependencies
+node_modules/
+frontend/node_modules/
+**/node_modules/
 
 # Project uploads and outputs temp files
 backend/uploads/*
@@ -18,3 +26,4 @@ backend/outputs/*
 # Local test outputs
 tests/sample.docx
 tests/sample_translated.docx
+

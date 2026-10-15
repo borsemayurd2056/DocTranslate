@@ -121,19 +121,28 @@
                     <span>Translate Document</span>
                 </button>
 
-                <!-- Processing / Loading State (Hidden by default) -->
-                <div id="loadingState" class="hidden flex flex-col items-center justify-center p-4 bg-gray-55 border border-gray-100 rounded-xl space-y-3">
-                    <div class="flex items-center space-x-3">
-                        <!-- Loading Spinner -->
-                        <svg class="animate-spin h-6 w-6 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        <span id="loadingMessage" class="text-sm font-semibold text-gray-700">Translating document using IndicTrans2...</span>
+                <!-- Processing / Loading State with Status Bar (Hidden by default) -->
+                <div id="loadingState" class="hidden flex flex-col p-5 bg-blue-50/60 border border-blue-100 rounded-xl space-y-4 shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2.5">
+                            <svg class="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <span id="loadingMessage" class="text-sm font-semibold text-gray-800">Translating document using IndicTrans2...</span>
+                        </div>
+                        <span id="progressPercent" class="text-sm font-extrabold text-blue-600 tracking-wide font-mono">0%</span>
                     </div>
-                    <p class="text-xs text-gray-400 text-center">
-                        This runs locally on your GPU/CPU. Do not close this tab.
-                    </p>
+
+                    <!-- Visual Progress Bar -->
+                    <div class="w-full bg-gray-200/80 rounded-full h-3 overflow-hidden shadow-inner">
+                        <div id="progressBar" class="bg-gradient-to-r from-blue-500 to-indigo-600 h-3 rounded-full transition-all duration-300 ease-out" style="width: 0%"></div>
+                    </div>
+
+                    <div class="flex items-center justify-between text-xs text-gray-500">
+                        <span id="progressDetail">Running hardware acceleration on RTX 3050 GPU</span>
+                        <span id="progressTimer" class="font-mono font-medium">0s elapsed</span>
+                    </div>
                 </div>
 
                 <!-- Success State (Hidden by default) -->
@@ -183,6 +192,6 @@
     </footer>
 
     <!-- Frontend Script -->
-    <script src="app.js"></script>
+    <script type="module" src="./app.js"></script>
 </body>
 </html>

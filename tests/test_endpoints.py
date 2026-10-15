@@ -10,7 +10,8 @@ sys.stdout.reconfigure(encoding='utf-8')
 # Set up path to import backend and test modules
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-API_URL = "http://127.0.0.1:5000"
+API_URL = os.environ.get("BACKEND_URL") or os.environ.get("API_URL") or "http://127.0.0.1:5000"
+API_URL = API_URL.rstrip("/")
 
 def test_standalone_endpoint():
     print("\n--- Testing /test-translation endpoint ---")

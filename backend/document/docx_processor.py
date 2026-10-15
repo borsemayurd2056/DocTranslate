@@ -84,13 +84,16 @@ def has_formatting_variation(p):
             
     return False
 
-def translate_docx(input_path, output_path, batch_size=None, force_cpu=True):
+def translate_docx(input_path, output_path, batch_size=None, force_cpu=False, progress_callback=None):
     """
     Reads a DOCX file from input_path, translates all English text inside
     paragraphs and tables to Marathi, and saves the translated DOCX to output_path.
     """
     if not os.path.exists(input_path):
         raise FileNotFoundError(f"Input file not found at: {input_path}")
+        
+    if progress_callback:
+        progress_callback(5, "Analyzing document structure and tables...")
         
     doc = Document(input_path)
     
@@ -117,11 +120,14 @@ def translate_docx(input_path, output_path, batch_size=None, force_cpu=True):
                         
     if not translatable_items:
         print("[DocTranslate] Extracted 0 paragraphs")
-        # No text in document, just save it as is
         doc.save(output_path)
+        if progress_callback:
+            progress_callback(100, "Empty document processed.")
         return
         
     print(f"[DocTranslate] Extracted {len(translatable_items)} paragraphs")
+    if progress_callback:
+        progress_callback(10, f"Extracted {len(translatable_items)} paragraphs...")
         
     # 3. Prepare texts for batch translation
     texts_to_translate = []
@@ -136,10 +142,48 @@ def translate_docx(input_path, output_path, batch_size=None, force_cpu=True):
             item['tagged_text'] = p.text
             texts_to_translate.append(p.text)
             
-    # 4. Perform translation of all items in a single batch call (which chunks internally)
-    print(f"[DocTranslate] Translating {len(texts_to_translate)} sentences")
-    translated_texts = translate_batch(texts_to_translate, batch_size=batch_size, force_cpu=force_cpu)
+    # 4. Filter and deduplicate unique segments needing translation
+    unique_to_translate = []
+    seen = set()
+    for t in texts_to_translate:
+        stripped = t.strip()
+        # Skip pure numbers, punctuation or symbols (e.g. '123', '505', '---', '1.')
+        if not re.search(r'[a-zA-Z]', stripped):
+            continue
+        if stripped not in seen:
+            seen.add(stripped)
+            unique_to_translate.append(stripped)
+
+    if progress_callback:
+        progress_callback(15, f"Optimized {len(texts_to_translate)} items into {len(unique_to_translate)} unique segments...")
+
+    # Perform batch translation on unique segments
+    if unique_to_translate:
+        print(f"[DocTranslate] Translating {len(unique_to_translate)} unique segments (out of {len(texts_to_translate)} total)")
+        unique_translated = translate_batch(
+            unique_to_translate,
+            batch_size=batch_size,
+            force_cpu=force_cpu,
+            progress_callback=progress_callback
+        )
+        trans_map = dict(zip(unique_to_translate, unique_translated))
+    else:
+        trans_map = {}
+
+    # Map translations back to all original items, preserving leading/trailing whitespace
+    translated_texts = []
+    for t in texts_to_translate:
+        stripped = t.strip()
+        if stripped in trans_map:
+            l_ws = t[:len(t) - len(t.lstrip())]
+            r_ws = t[len(t.rstrip()):]
+            translated_texts.append(l_ws + trans_map[stripped] + r_ws)
+        else:
+            translated_texts.append(t)
+            
     print("[DocTranslate] Translation completed")
+    if progress_callback:
+        progress_callback(92, "Preserving original formatting, fonts, and table structures...")
     
     # 5. Re-apply translated text to the document elements
     print("[DocTranslate] Creating translated DOCX")
@@ -206,4 +250,8 @@ def translate_docx(input_path, output_path, batch_size=None, force_cpu=True):
             if orig_font_color:
                 new_run.font.color.rgb = orig_font_color
                 
+    if progress_callback:
+        progress_callback(98, "Saving translated DOCX document...")
     doc.save(output_path)
+    if progress_callback:
+        progress_callback(100, "Translation completed successfully!")

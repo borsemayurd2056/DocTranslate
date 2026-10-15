@@ -1,36 +1,64 @@
-# Use a lightweight official Python base image
+# ==========================================
+# Stage 1: Build Frontend with Node.js
+# ==========================================
+FROM node:20-slim AS frontend-builder
+WORKDIR /app/frontend
+
+# Install frontend dependencies
+COPY frontend/package*.json ./
+RUN npm install
+
+# Copy frontend source and build to dist
+COPY frontend/ ./
+RUN npm run build
+
+# ==========================================
+# Stage 2: Python Runtime
+# ==========================================
 FROM python:3.11-slim
 
 # Set environment variables
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-ENV PYTHONIOENCODING=utf-8
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONIOENCODING=utf-8 \
+    PORT=7860 \
+    HOME=/home/user \
+    HF_HOME=/home/user/.cache/huggingface \
+    PATH=/home/user/.local/bin:$PATH
 
-# Set work directory inside the container
-WORKDIR /app
-
-# Install system dependencies needed for compiling certain libraries (like Cython, regex, etc.)
+# Install system dependencies needed for compiling certain libraries
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     git \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy backend requirements file and install dependencies
-# We install PyTorch CPU version here by default. This makes the Docker image significantly 
-# smaller (~1 GB vs ~4 GB) and avoids CUDA driver overheads if running on a CPU-only server.
-# If CUDA GPU is available on the target host, replace '--index-url https://download.pytorch.org/whl/cpu' with the standard PyTorch installation.
+# Create non-root user (uid 1000) for Hugging Face Spaces
+RUN useradd -m -u 1000 user
+
+# Set work directory
+WORKDIR /app
+
+# Upgrade pip, install CPU-only torch, then install remaining dependencies
+COPY requirements.txt ./
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu && \
-    pip install --no-cache-dir -r backend/requirements.txt
+    pip install --no-cache-dir -r requirements.txt
 
-# Copy the entire project code into the container
-COPY . .
+# Copy application source code
+COPY . /app
 
-# Expose port 5000 for Flask
-EXPOSE 5000
+# Copy built frontend assets from node stage
+COPY --from=frontend-builder /app/frontend/dist /app/frontend/dist
 
-# Set environment variable for backend routing (optional, handled by python-dotenv or Docker runtime)
-ENV FLASK_APP=backend/app.py
+# Ensure writable cache and workspace directories with proper ownership for non-root user
+RUN mkdir -p /home/user/.cache/huggingface /app/backend/uploads /app/backend/outputs && \
+    chown -R 1000:1000 /home/user /app
 
-# Command to run the Flask application
-CMD ["python", "backend/app.py"]
+# Switch to non-root user
+USER 1000
+
+# Expose Hugging Face Spaces default port
+EXPOSE 7860
+
+# Start Flask application with Gunicorn (1 worker, 2 threads, 600s timeout)
+CMD ["gunicorn", "-w", "1", "--threads", "2", "-t", "600", "-b", "0.0.0.0:7860", "backend.app:app"]

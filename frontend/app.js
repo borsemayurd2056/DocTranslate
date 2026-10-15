@@ -10,6 +10,10 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const loadingState = document.getElementById('loadingState');
     const loadingMessage = document.getElementById('loadingMessage');
+    const progressBar = document.getElementById('progressBar');
+    const progressPercent = document.getElementById('progressPercent');
+    const progressTimer = document.getElementById('progressTimer');
+    const progressDetail = document.getElementById('progressDetail');
     const successState = document.getElementById('successState');
     const downloadBtn = document.getElementById('downloadBtn');
     const resetBtn = document.getElementById('resetBtn');
@@ -117,24 +121,62 @@ document.addEventListener('DOMContentLoaded', () => {
         loadingState.classList.add('hidden');
         successState.classList.add('hidden');
         errorState.classList.add('hidden');
+
+        if (progressBar) progressBar.style.width = '0%';
+        if (progressPercent) progressPercent.textContent = '0%';
+        if (progressTimer) progressTimer.textContent = '0s elapsed';
     }
 
     // Trigger translate action
     translateBtn.addEventListener('click', async () => {
         if (!selectedFile) return;
 
-        // Reset state
+        // Reset state & progress bar
         translateBtn.disabled = true;
         removeFileBtn.disabled = true;
         loadingState.classList.remove('hidden');
         successState.classList.add('hidden');
         errorState.classList.add('hidden');
+
+        if (progressBar) progressBar.style.width = '0%';
+        if (progressPercent) progressPercent.textContent = '0%';
+        if (progressTimer) progressTimer.textContent = '0s elapsed';
+        loadingMessage.textContent = 'Preparing translation...';
         
         const formData = new FormData();
         formData.append('file', selectedFile);
 
+        const jobId = 'job_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
+
+        let elapsedSeconds = 0;
+        const timerInterval = setInterval(() => {
+            elapsedSeconds++;
+            if (progressTimer) {
+                progressTimer.textContent = `${elapsedSeconds}s elapsed`;
+            }
+        }, 1000);
+
+        // Active polling for progress bar
+        const pollInterval = setInterval(async () => {
+            try {
+                const pRes = await fetch(`/progress/${jobId}`);
+                if (pRes.ok) {
+                    const data = await pRes.json();
+                    if (data && typeof data.percent === 'number') {
+                        if (progressBar) progressBar.style.width = `${data.percent}%`;
+                        if (progressPercent) progressPercent.textContent = `${data.percent}%`;
+                        if (data.message && loadingMessage) {
+                            loadingMessage.textContent = data.message;
+                        }
+                    }
+                }
+            } catch (e) {
+                // Ignore transient polling fetch error
+            }
+        }, 300);
+
         try {
-            const response = await fetch('/translate', {
+            const response = await fetch(`/translate?job_id=${jobId}`, {
                 method: 'POST',
                 body: formData
             });
@@ -152,6 +194,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 throw new Error(errText);
             }
+
+            // Set to 100% on completion
+            if (progressBar) progressBar.style.width = '100%';
+            if (progressPercent) progressPercent.textContent = '100%';
+            if (loadingMessage) loadingMessage.textContent = 'Finalizing download...';
 
             // Get blob data
             downloadBlob = await response.blob();
@@ -185,6 +232,9 @@ document.addEventListener('DOMContentLoaded', () => {
             loadingState.classList.add('hidden');
             translateBtn.disabled = false;
             removeFileBtn.disabled = false;
+        } finally {
+            clearInterval(timerInterval);
+            clearInterval(pollInterval);
         }
     });
 
